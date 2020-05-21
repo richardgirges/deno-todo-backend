@@ -2,10 +2,10 @@ import { Pool } from "https://deno.land/x/postgres/mod.ts";
 
 // DB connection params
 const config = {
-  host: "localhost",
-  port: 5432,
-  user: "postgres",
-  database: "todo",
+  host: Deno.env.get("DB_HOST") || "localhost",
+  port: parseInt(Deno.env.get("DB_PORT") || "5432"),
+  user: Deno.env.get("DB_USER") || "postgres",
+  database: Deno.env.get("DB_NAME") || "todo",
   applicationName: "todo-backend-deno",
 };
 

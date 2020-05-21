@@ -1,6 +1,6 @@
 import { dbClient } from "./db.ts";
 
-function massageTodoRecord(record?: Array<string | number>) {
+function massageTodoRecord(record?: Array<string | number | boolean>) {
   if (!record) {
     return null;
   }
@@ -9,12 +9,13 @@ function massageTodoRecord(record?: Array<string | number>) {
     id: record[0],
     title: record[1],
     order: record[2],
+    completed: record[3],
   };
 }
 
 export const getAll = async () => {
   const result = await dbClient.query(
-    'SELECT id, title, "order" FROM todo ORDER BY "order"',
+    'SELECT id, title, "order", completed FROM todo ORDER BY "order"',
   );
 
   return result.rows.map(massageTodoRecord);
@@ -22,18 +23,25 @@ export const getAll = async () => {
 
 export const getOne = async (id: number) => {
   const result = await dbClient.query(
-    'SELECT id, title, "order" FROM todo WHERE id = $1',
+    'SELECT id, title, "order", completed FROM todo WHERE id = $1',
     id,
   );
 
   return massageTodoRecord(result.rows[0]);
 };
 
-export const create = async (title: string, order: number) => {
+export const create = async (
+  { title, order, completed }: {
+    title: string;
+    order?: number;
+    completed?: boolean;
+  },
+) => {
   const result = await dbClient.query(
-    'INSERT INTO todo (title, "order") VALUES ($1, $2) RETURNING *',
+    'INSERT INTO todo (title, "order", completed) VALUES ($1, $2, $3) RETURNING *',
     title,
-    order,
+    order === undefined ? null : order,
+    completed || false,
   );
 
   return massageTodoRecord(result.rows[0]);
@@ -41,7 +49,7 @@ export const create = async (title: string, order: number) => {
 
 export const updateOne = async (
   id: number,
-  properties: { title?: string; order?: number },
+  properties: { title?: string; order?: number; completed?: boolean },
 ) => {
   const todo = await getOne(id);
 
@@ -52,9 +60,12 @@ export const updateOne = async (
   // cosmetically update the todo title and order fields
   todo.title = properties.title !== undefined ? properties.title : todo.title;
   todo.order = properties.order !== undefined ? properties.order : todo.order;
+  todo.completed = properties.completed !== undefined
+    ? properties.completed
+    : todo.completed;
 
   // update the record in the DB
-  const result = await dbClient.query(
+  await dbClient.query(
     'UPDATE todo SET title = $1, "order" = $2 WHERE id = $3',
     todo.title,
     todo.order,

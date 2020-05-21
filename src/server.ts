@@ -34,11 +34,11 @@ router.post("/", async ({ request, response }) => {
       throw new Error('"title" is required');
     }
 
-    if (body.value.order === undefined || body.value.order === null) {
-      throw new Error('"order" is required');
-    }
-
-    response.body = await Todo.create(body.value.title, body.value.order);
+    response.body = await Todo.create({
+      title: body.value.title,
+      order: body.value.order,
+      completed: body.value.completed,
+    });
   } catch (e) {
     response.status = 500;
     response.body = e.message;

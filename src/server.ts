@@ -83,7 +83,7 @@ router.delete<{ id: string }>("/:id", async ({ params, response }) => {
   }
 });
 
-const port = 3000;
+const port = parseInt(Deno.env.get("PORT") || "3000");
 const app = new Application();
 
 app.use(router.routes());

@@ -6,8 +6,11 @@ const config = {
   port: parseInt(Deno.env.get("DB_PORT") || "5432"),
   user: Deno.env.get("DB_USER") || "postgres",
   database: Deno.env.get("DB_NAME") || "todo",
+  password: Deno.env.get("DB_PASSWORD") || "",
   applicationName: "todo-backend-deno",
 };
+
+console.log('CONFIG', config);
 
 // Max DB connections
 const maxConnections = 10;
